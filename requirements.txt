@@ -3,3 +3,5 @@ crewai-tools
 streamlit
 python-dotenv
 openai
+chromadb
+sqlite
