@@ -1,50 +1,52 @@
 import streamlit as st
-from crewai import Agent, Task, Crew
-from crewai_tools import ScrapeWebsiteTool
-from openai import OpenAI
 import os
+from crewai import Agent, Task, Crew
+from openai import OpenAI
 
+# Disable ChromaDB requirements
+os.environ["CREWAI_EMBEDDER"] = "openai"  # Bypasses ChromaDB
+os.environ["CREWAI_DISABLE_MEMORY"] = "true"  # Disables memory features
+
+# Secure API setup
 client = OpenAI(
     base_url="https://api.electronhub.top/v1/",
-    api_key=os.environ["ELECTRONHUB_API_KEY"]  # Secure method
+    api_key=os.environ["ELECTRONHUB_API_KEY"]
 )
 
-# App UI
-st.title("⚛️ Nuclear Compliance AI Assistant")
-st.caption("Auto-generate IAEA safety checklists")
+st.title("⚛️ Nuclear Compliance AI")
+st.markdown("""
+<style>
+    .stApp {background: #f8f9fa}
+    .stButton>button {background: #4CAF50!important; color: white!important;}
+</style>
+""", unsafe_allow_html=True)
 
-# Tools
-iaea_tool = ScrapeWebsiteTool(urls=['https://www.iaea.org/documents'])
-
-# Agents
+# Simplified agent without ChromaDB-dependent tools
 compliance_agent = Agent(
-    role="Senior Nuclear Safety Engineer",
-    goal="Create step-by-step compliance checklists for IAEA standards",
-    backstory="20+ years experience in nuclear regulatory compliance",
-    tools=[iaea_tool],
+    role="Chief Nuclear Safety Officer",
+    goal="Generate IAEA compliance checklists",
+    backstory="20+ years experience in nuclear regulatory affairs",
     verbose=True,
-    llm=client  # Uses your custom API
+    llm=client,
+    memory=False  # Disables ChromaDB-based memory
 )
 
-# Task
+# Task setup
 task = Task(
-    description="Generate checklist for: {project_type}",
-    expected_output="Markdown list with 10 steps, IAEA standard codes, and deadlines",
+    description="Create checklist for: {project_type}",
+    expected_output="Markdown list with IAEA standard codes and deadlines",
     agent=compliance_agent
 )
 
-# User Inputs
+# UI Elements
 project_type = st.selectbox(
-    "Project Type",
-    ["Waste Disposal", "Reactor Maintenance", "Fuel Transport"]
+    "Select Project Type",
+    ["Waste Disposal", "Reactor Safety", "Radiation Shielding"]
 )
 
-# Execution
-if st.button("Generate Checklist"):
-    crew = Crew(agents=[compliance_agent], tasks=[task])
-    result = crew.kickoff(inputs={"project_type": project_type})
-    
-    st.markdown(result)
-    
-    # BMAC Integration (REPLACE LINK)
-    st.markdown('[☕ Support This Tool](https://www.buymeacoffee.com/omnigpt)')
+if st.button("🚀 Generate Compliance Plan"):
+    with st.spinner("Analyzing IAEA regulations..."):
+        crew = Crew(agents=[compliance_agent], tasks=[task])
+        result = crew.kickoff(inputs={"project_type": project_type})
+        st.markdown(result)
+        st.markdown('[☕ Support Development](YOUR_BMAC_LINK_HERE)')
